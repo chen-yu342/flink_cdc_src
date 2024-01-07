@@ -44,13 +44,14 @@ public class DebeziumChangeConsumer
     public DebeziumChangeConsumer(Handover handover) {
         this.handover = handover;
     }
-
+    //TODO engine线程会调用handleBatch方法传递引擎消费到的数据
     @Override
     public void handleBatch(
             List<ChangeEvent<SourceRecord, SourceRecord>> events,
             RecordCommitter<ChangeEvent<SourceRecord, SourceRecord>> recordCommitter) {
         try {
             currentCommitter = recordCommitter;
+            //TODO // 间接调用到handover的produce方法,该方法是阻塞的 嘻嘻嘻(如果有历史records未被消费则wait)
             handover.produce(events);
         } catch (Throwable e) {
             // Hold this exception in handover and trigger the fetcher to exit

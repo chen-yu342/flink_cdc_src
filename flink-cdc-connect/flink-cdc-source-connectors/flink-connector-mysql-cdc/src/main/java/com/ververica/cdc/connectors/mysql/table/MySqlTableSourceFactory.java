@@ -87,11 +87,12 @@ public class MySqlTableSourceFactory implements DynamicTableSourceFactory {
 
     @Override
     public DynamicTableSource createDynamicTableSource(Context context) {
+        //TODO 这个方法的主要作用就构造 MySQLTableSource 对象
         final FactoryUtil.TableFactoryHelper helper =
                 FactoryUtil.createTableFactoryHelper(this, context);
         helper.validateExcept(
                 DebeziumOptions.DEBEZIUM_OPTIONS_PREFIX, JdbcUrlUtils.PROPERTIES_PREFIX);
-
+        //TODO 先会从 DDL 中获取 hostname,username,password 等数据库和表的信息
         final ReadableConfig config = helper.getOptions();
         String hostname = config.get(HOSTNAME);
         String username = config.get(USERNAME);
@@ -136,7 +137,7 @@ public class MySqlTableSourceFactory implements DynamicTableSourceFactory {
         }
 
         OptionUtils.printOptions(IDENTIFIER, ((Configuration) config).toMap());
-
+        //TODO 构建 MySQLTableSource 对象
         return new MySqlTableSource(
                 physicalSchema,
                 port,

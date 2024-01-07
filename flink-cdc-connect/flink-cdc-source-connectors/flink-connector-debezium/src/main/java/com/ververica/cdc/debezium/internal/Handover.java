@@ -47,14 +47,16 @@ import static org.apache.flink.util.Preconditions.checkNotNull;
  * <p>The Handover can also be "closed", signalling from one thread to the other that it the thread
  * has terminated.
  */
-@ThreadSafe
+//TODO 这个类由两个线程访问, pollNext由debeziumFetcher调用,produce由debeziumConsumer调用,因为涉及多线程的调用,单纯的讲代码可能不容易理解,
+// 可以去复习一下java多线程知识内容,或者自己debug一下看看调用流程就比较容易理解了
+@ThreadSafe //todo 表示类是线程安全的,这类涉及engine和source线程两个线程操作,内部的实现保证了线程安全
 @Internal
 public class Handover implements Closeable {
 
     private static final Logger LOG = LoggerFactory.getLogger(Handover.class);
     private final Object lock = new Object();
 
-    @GuardedBy("lock")
+    @GuardedBy("lock") // todo 注解表示该变量受lock的保护, 不是重点勿关注
     private List<ChangeEvent<SourceRecord, SourceRecord>> next;
 
     @GuardedBy("lock")
@@ -74,21 +76,28 @@ public class Handover implements Closeable {
      * @throws ClosedException Thrown if the Handover was {@link #close() closed}.
      * @throws Exception Rethrows exceptions from the {@link #reportError(Throwable)} method.
      */
+    //TODO debeziumFetcher 调用,当没有数据的时候进入wait状态,wait状态的时候cpu是不会调用wait状态的线程,另一个线程就可以占用cpu的全部时间片
     public List<ChangeEvent<SourceRecord, SourceRecord>> pollNext() throws Exception {
         synchronized (lock) {
+            // todo 没有数据没有异常则持续循环进入wait状态,为了防止虚假唤醒的情况
             while (next == null && error == null) {
                 lock.wait();
             }
             List<ChangeEvent<SourceRecord, SourceRecord>> n = next;
+            //TODO 上面的循环可以退出的时候,说明一定是有数据或者有异常,不存在其他的情况
             if (n != null) {
+                //TODO 将next置为null 下面会根据此条件作为判断条件
                 next = null;
+                //TODO 唤醒其他等待线程,当然只可能是engine线程
                 lock.notifyAll();
                 return n;
             } else {
+                //TODO  将异常抛出
                 ExceptionUtils.rethrowException(error, error.getMessage());
 
                 // this statement cannot be reached since the above method always throws an
                 // exception this is only here to silence the compiler and any warnings
+                //TODO 上面方法一定会抛出异常,改代码只是为了去掉编译警告...
                 return Collections.emptyList();
             }
         }
@@ -111,12 +120,13 @@ public class Handover implements Closeable {
         checkNotNull(element);
 
         synchronized (lock) {
+            //TODO next不空一直进入wait状态
             while (next != null && !wakeupProducer) {
                 lock.wait();
             }
 
             wakeupProducer = false;
-
+            //todo 有异常抛出异常,没异常将接受新数据,并唤醒fetcher线程
             // an error marks this as closed for the producer
             if (error != null) {
                 ExceptionUtils.rethrow(error, error.getMessage());

@@ -156,15 +156,17 @@ public class MySqlTableSource implements ScanTableSource, SupportsReadingMetadat
     public ChangelogMode getChangelogMode() {
         return ChangelogMode.all();
     }
-
+    //TODO 这个方法,它会返回一个用于读取数据的运行实例对象
     @Override
     public ScanRuntimeProvider getScanRuntimeProvider(ScanContext scanContext) {
+        //TODO 1.先获取rowType typeInfo信息
         RowType physicalDataType =
                 (RowType) physicalSchema.toPhysicalRowDataType().getLogicalType();
         MetadataConverter[] metadataConverters = getMetadataConverters();
         final TypeInformation<RowData> typeInfo =
                 scanContext.createTypeInformation(producedDataType);
-
+        //TODO 然后构建了一个 DebeziumDeserializationSchema 反序列对象,
+        // 这个对象的作用是把读取到的 SourceRecord 数据类型转换成 Flink 认识的 RowData 类型
         DebeziumDeserializationSchema<RowData> deserializer =
                 RowDataDebeziumDeserializeSchema.newBuilder()
                         .setPhysicalRowType(physicalDataType)
@@ -222,6 +224,10 @@ public class MySqlTableSource implements ScanTableSource, SupportsReadingMetadat
                             .deserializer(deserializer);
             Optional.ofNullable(serverId)
                     .ifPresent(serverId -> builder.serverId(Integer.parseInt(serverId)));
+            //TODO builder.build() 该方法构造了 DebeziumSourceFunction 对象
+            // 也就是说 Flink 的底层是采用 Debezium 来读取 mysql,PostgreSQL 数据库的变更日志的
+            // 点进去DebeziumSourceFunction 看它的 UML 类图
+            // DebeziumSourceF unction 不仅继承了 RichSourceFunction 这个抽象类,而且还实现了 checkpoint 相关的接口,所以 mysql-cdc 是支持 Exactly Once 语义的
             DebeziumSourceFunction<RowData> sourceFunction = builder.build();
             return SourceFunctionProvider.of(sourceFunction, false);
         }

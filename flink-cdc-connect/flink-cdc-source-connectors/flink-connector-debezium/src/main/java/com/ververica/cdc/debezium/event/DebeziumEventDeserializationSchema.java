@@ -93,7 +93,7 @@ public abstract class DebeziumEventDeserializationSchema extends SourceRecordEve
     }
 
     @Override
-    public List<DataChangeEvent> deserializeDataChangeRecord(SourceRecord record) throws Exception {
+    protected List<DataChangeEvent> deserializeDataChangeRecord(SourceRecord record) throws Exception {
         Envelope.Operation op = Envelope.operationFor(record);
         TableId tableId = getTableId(record);
 

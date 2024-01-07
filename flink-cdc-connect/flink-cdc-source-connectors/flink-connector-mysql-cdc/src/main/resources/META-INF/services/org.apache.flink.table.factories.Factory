@@ -11,5 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+#该目录用与spi方式动态加载table factory,用于sql创建table找到对应的工厂类
 
 com.ververica.cdc.connectors.mysql.table.MySqlTableSourceFactory

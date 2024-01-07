@@ -143,14 +143,16 @@ public class SqlServerTableSource implements ScanTableSource, SupportsReadingMet
     public ChangelogMode getChangelogMode() {
         return ChangelogMode.all();
     }
-
+    //TODO getScanRuntimeProvider 这个方法,它会返回一个用于读取数据的运行实例对象
     @Override
     public ScanRuntimeProvider getScanRuntimeProvider(ScanContext scanContext) {
+        //TODO 先获取了 rowType 和 typeInfo 信息
         RowType physicalDataType =
                 (RowType) physicalSchema.toPhysicalRowDataType().getLogicalType();
         MetadataConverter[] metadataConverters = getMetadataConverters();
         TypeInformation<RowData> typeInfo = scanContext.createTypeInformation(producedDataType);
-
+         //TODO 然后构建了一个 DebeziumDeserializationSchema 反序列对象,这个对象的作用是把读取到的
+        // SourceRecord 数据类型转换成 Flink 认识的 RowData 类型
         DebeziumDeserializationSchema<RowData> deserializer =
                 RowDataDebeziumDeserializeSchema.newBuilder()
                         .setPhysicalRowType(physicalDataType)

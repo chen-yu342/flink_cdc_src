@@ -108,12 +108,13 @@ public class SqlServerTableFactory implements DynamicTableSourceFactory {
                             "Optional startup mode for SqlServer CDC consumer, valid enumerations are "
                                     + "\"initial\", \"initial-only\", \"latest-offset\"");
 
+    //TODO 主要作用就构造 SqlServerTableSource 对象
     @Override
     public DynamicTableSource createDynamicTableSource(Context context) {
         final FactoryUtil.TableFactoryHelper helper =
                 FactoryUtil.createTableFactoryHelper(this, context);
         helper.validateExcept(DEBEZIUM_OPTIONS_PREFIX);
-
+        //TODO 中获取 hostname,username,password 等数据库和表的信息,然后去构建 MySQLTableSource 对象
         final ReadableConfig config = helper.getOptions();
         String hostname = config.get(HOSTNAME);
         String username = config.get(USERNAME);
@@ -151,7 +152,7 @@ public class SqlServerTableFactory implements DynamicTableSourceFactory {
         }
 
         OptionUtils.printOptions(IDENTIFIER, ((Configuration) config).toMap());
-
+        //TODO  点进去SqlServerTableSource  getScanRuntimeProvider
         return new SqlServerTableSource(
                 physicalSchema,
                 port,

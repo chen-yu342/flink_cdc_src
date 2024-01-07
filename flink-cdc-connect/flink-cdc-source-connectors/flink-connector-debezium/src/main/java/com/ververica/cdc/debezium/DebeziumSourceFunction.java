@@ -189,6 +189,7 @@ public class DebeziumSourceFunction<T> extends RichSourceFunction<T>
     private transient String engineInstanceName;
 
     /** Consume the events from the engine and commit the offset to the engine. */
+    //TODO 用于消费engine读取的数据
     private transient DebeziumChangeConsumer changeConsumer;
 
     /** The consumer to fetch records from {@link Handover}. */
@@ -216,8 +217,10 @@ public class DebeziumSourceFunction<T> extends RichSourceFunction<T>
         super.open(parameters);
         ThreadFactory threadFactory =
                 new ThreadFactoryBuilder().setNameFormat("debezium-engine").build();
+        //TODO open 方法里面主要是创建了一个单线程化的线程池(它只会用唯一的工作线程来执行任务).所以 mysql-cdc 源是单线程读取的
         this.executor = Executors.newSingleThreadExecutor(threadFactory);
         this.handover = new Handover();
+        //TODO 用于消费engine读取的数据
         this.changeConsumer = new DebeziumChangeConsumer(handover);
     }
 
@@ -318,7 +321,7 @@ public class DebeziumSourceFunction<T> extends RichSourceFunction<T>
 
     private void snapshotOffsetState(long checkpointId) throws Exception {
         offsetState.clear();
-
+        //TODO 循环从handover中获取consumer从engine读取的最新数据
         final DebeziumChangeFetcher<?> fetcher = this.debeziumChangeFetcher;
 
         byte[] serializedOffset = null;
@@ -373,7 +376,7 @@ public class DebeziumSourceFunction<T> extends RichSourceFunction<T>
             // restored from state
             properties.setProperty(FlinkOffsetBackingStore.OFFSET_STATE_VALUE, restoredOffsetState);
         }
-        // DO NOT include schema change, e.g. DDL
+        // DO NOT include schema change, e.g. DDL //TODO 默认是 false ,也就是说不会捕获表结构的变更,所以如果有新增字段的话
         properties.putIfAbsent("include.schema.changes", "false");
         // disable the offset flush totally
         properties.putIfAbsent("offset.flush.interval.ms", String.valueOf(Long.MAX_VALUE));
@@ -406,7 +409,7 @@ public class DebeziumSourceFunction<T> extends RichSourceFunction<T>
                         dbzHeartbeatPrefix,
                         handover);
 
-        // create the engine with this configuration ...
+        // create the engine with this configuration ... //TODO 构建 DebeziumEngine 对象
         this.engine =
                 DebeziumEngine.create(Connect.class)
                         .using(properties)
@@ -423,7 +426,7 @@ public class DebeziumSourceFunction<T> extends RichSourceFunction<T>
                                 })
                         .build();
 
-        // run the engine asynchronously
+        // run the engine asynchronously //TODO 然后通过上面的线程池来执行 engine
         executor.execute(engine);
         debeziumStarted = true;
 
