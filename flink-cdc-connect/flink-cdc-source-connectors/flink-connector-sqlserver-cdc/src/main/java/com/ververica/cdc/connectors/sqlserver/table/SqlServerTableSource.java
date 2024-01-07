@@ -152,7 +152,7 @@ public class SqlServerTableSource implements ScanTableSource, SupportsReadingMet
         MetadataConverter[] metadataConverters = getMetadataConverters();
         TypeInformation<RowData> typeInfo = scanContext.createTypeInformation(producedDataType);
          //TODO 然后构建了一个 DebeziumDeserializationSchema 反序列对象,这个对象的作用是把读取到的
-        // SourceRecord 数据类型转换成 Flink 认识的 RowData 类型
+        // SourceRecord 数据类型转换成 Flink 认识的 RowData 类型 todo 点进去DebeziumDeserializationSchema看deserialize方法
         DebeziumDeserializationSchema<RowData> deserializer =
                 RowDataDebeziumDeserializeSchema.newBuilder()
                         .setPhysicalRowType(physicalDataType)

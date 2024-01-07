@@ -118,9 +118,13 @@ public final class RowDataDebeziumDeserializeSchema
 
     @Override
     public void deserialize(SourceRecord record, Collector<RowData> out) throws Exception {
+        //TODO  获取 op 类型
         Envelope.Operation op = Envelope.operationFor(record);
+        //TODO 获取数据
         Struct value = (Struct) record.value();
+        //TODO 获取 schema 信息
         Schema valueSchema = record.valueSchema();
+        //TODO 根据 op 的不同类型走不同的操作
         if (op == Envelope.Operation.CREATE || op == Envelope.Operation.READ) {
             GenericRowData insert = extractAfterRow(value, valueSchema);
             validator.validate(insert, RowKind.INSERT);
@@ -132,6 +136,7 @@ public final class RowDataDebeziumDeserializeSchema
             delete.setRowKind(RowKind.DELETE);
             emit(record, delete, out);
         } else {
+            //TODO update
             if (changelogMode == DebeziumChangelogMode.ALL) {
                 GenericRowData before = extractBeforeRow(value, valueSchema);
                 validator.validate(before, RowKind.UPDATE_BEFORE);

@@ -103,6 +103,8 @@ import static com.ververica.cdc.debezium.utils.DatabaseHistoryUtil.retrieveHisto
  * <p>Please refer to Debezium's documentation for the available configuration properties:
  * https://debezium.io/documentation/reference/1.9/development/engine.html#engine-properties
  */
+//TODO DebeziumSourceF unction 不仅继承了 RichSourceFunction 这个抽象类,而且还实现了 checkpoint 相关的接口,
+// 所以 sqlserver-cdc 是支持 Exactly Once 语义的
 @PublicEvolving
 public class DebeziumSourceFunction<T> extends RichSourceFunction<T>
         implements CheckpointedFunction, CheckpointListener, ResultTypeQueryable<T> {
